@@ -10,9 +10,9 @@ This suite validates the high-level CipherForge flow:
 
 ## Prerequisites
 
-- Angular app running at `http://localhost:4200`
-- Spring backend running at `http://localhost:8080`
-- Python wipe engine running and integrated with backend
+- Angular app running at `http://localhost:4200` or `http://localhost:4300`
+- FastAPI backend running at `http://localhost:8000`
+- PostgreSQL available to the backend
 - Seeded admin user (`admin` / `admin12345`) or update test credentials
 
 ## Run

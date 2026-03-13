@@ -32,7 +32,7 @@ class CertificateGenerator:
         self.logger = logging.getLogger("wipe_engine_service.certificate_generator")
         self.verification_base_url = os.getenv(
             "CERTIFICATE_VERIFY_BASE_URL",
-            "http://localhost:8080",
+            "http://localhost:8000",
         ).rstrip("/")
         self.output_dir = (
             Path(output_dir)

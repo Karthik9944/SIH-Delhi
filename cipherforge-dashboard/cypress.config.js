@@ -9,6 +9,6 @@ module.exports = defineConfig({
     viewportHeight: 768
   },
   env: {
-    apiBaseUrl: 'http://localhost:8081'
+    apiBaseUrl: 'http://localhost:8000'
   }
 });

@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  apiBaseUrl: 'http://localhost:8081',
+  apiBaseUrl: 'http://localhost:8000',
   wipeEngineBaseUrl: 'http://localhost:8000',
-  systemVersion: 'v1.0.0'
+  systemVersion: 'v2.0.0'
 };

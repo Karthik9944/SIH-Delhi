@@ -4,119 +4,71 @@ setlocal EnableExtensions EnableDelayedExpansion
 set "ROOT_DIR=%~dp0"
 if "%ROOT_DIR:~-1%"=="\" set "ROOT_DIR=%ROOT_DIR:~0,-1%"
 
-set "PYTHON_DIR=%ROOT_DIR%\wipe_engine_service"
-set "BACKEND_DIR=%ROOT_DIR%\cipherforge-spring-backend"
+set "BACKEND_DIR=%ROOT_DIR%"
 set "FRONTEND_DIR=%ROOT_DIR%\cipherforge-dashboard"
-if not defined BACKEND_PORT set "BACKEND_PORT=8081"
+if not defined BACKEND_PORT set "BACKEND_PORT=8000"
 if not defined FRONTEND_PORT set "FRONTEND_PORT=4300"
+if not defined DATABASE_URL set "DATABASE_URL=sqlite:///%ROOT_DIR:\=/%/cipherforge-dev.db"
+if not defined WIPE_ENGINE_DRY_RUN set "WIPE_ENGINE_DRY_RUN=true"
 
 echo ================================================
 echo CipherForge System Startup
 echo Root: %ROOT_DIR%
+echo DATABASE_URL: %DATABASE_URL%
 echo ================================================
 
 call :start_postgres
-call :start_python_engine
 call :start_backend
 call :start_frontend
 
 echo.
 echo ================================================
 echo Startup sequence completed.
-echo Python Engine : http://localhost:8000
-echo Spring Backend: http://localhost:%BACKEND_PORT%
+echo FastAPI Backend: http://localhost:%BACKEND_PORT%
 echo Angular UI    : http://localhost:%FRONTEND_PORT%
 echo ================================================
 exit /b 0
 
 :start_postgres
 echo.
-echo [1/4] Checking PostgreSQL (port 5432)...
+echo [1/3] Checking PostgreSQL (port 5432)...
 call :is_port_open 5432
 if /I "!OPEN!"=="true" (
-  echo PostgreSQL already running.
+  echo PostgreSQL detected.
+  echo Note: local startup now defaults to SQLite unless DATABASE_URL is overridden.
   exit /b 0
 )
 
-echo PostgreSQL not detected. Trying to start service...
-set "PG_STARTED=false"
-for %%S in (
-  "postgresql-x64-17"
-  "postgresql-x64-16"
-  "postgresql-x64-15"
-  "postgresql-x64-14"
-  "postgresql-x64-13"
-  "postgresql"
-  "PostgreSQL"
-) do (
-  sc query %%~S >nul 2>&1
-  if !errorlevel! EQU 0 (
-    echo Trying service %%~S ...
-    net start %%~S >nul 2>&1
-    if !errorlevel! EQU 0 set "PG_STARTED=true"
-  )
-)
-
-call :wait_for_port 5432 20
-if !errorlevel! EQU 0 (
-  echo PostgreSQL is running.
-) else (
-  echo WARNING: PostgreSQL is still not reachable on port 5432.
-  echo          Start PostgreSQL manually if your setup uses a different service.
-)
-exit /b 0
-
-:start_python_engine
-echo.
-echo [2/4] Checking Python wipe engine (port 8000)...
-call :is_port_open 8000
-if /I "!OPEN!"=="true" (
-  echo Python wipe engine already running.
-  exit /b 0
-)
-
-if not exist "%PYTHON_DIR%\main.py" (
-  echo ERROR: Python engine script not found at "%PYTHON_DIR%\main.py"
-  exit /b 1
-)
-
-echo Starting Python wipe engine...
-start "CipherForge Python Engine" cmd /k "cd /d ""%ROOT_DIR%"" && python -m wipe_engine_service.main"
-call :wait_for_port 8000 25
-if !errorlevel! EQU 0 (
-  echo Python wipe engine started.
-) else (
-  echo WARNING: Python wipe engine did not open port 8000 in time.
-)
+echo PostgreSQL not detected. Continuing with local SQLite default.
 exit /b 0
 
 :start_backend
 echo.
-echo [3/4] Checking Spring backend (port %BACKEND_PORT%)...
+echo [2/3] Checking FastAPI backend (port %BACKEND_PORT%)...
 call :is_port_open %BACKEND_PORT%
 if /I "!OPEN!"=="true" (
-  echo Spring backend already running on port %BACKEND_PORT%.
+  echo FastAPI backend already running on port %BACKEND_PORT%.
   exit /b 0
 )
 
-if not exist "%BACKEND_DIR%\pom.xml" (
-  echo ERROR: Backend pom.xml not found at "%BACKEND_DIR%\pom.xml"
+if not exist "%BACKEND_DIR%\main.py" (
+  echo ERROR: Backend main.py not found at "%BACKEND_DIR%\main.py"
   exit /b 1
 )
 
-echo Starting Spring backend...
-start "CipherForge Spring Backend" cmd /k "cd /d ""%BACKEND_DIR%"" && mvn spring-boot:run -Dspring-boot.run.arguments=--server.port=%BACKEND_PORT%"
-call :wait_for_port %BACKEND_PORT% 60
+echo Starting FastAPI backend...
+start "CipherForge FastAPI Backend" cmd /k "cd /d ""%BACKEND_DIR%"" && set DATABASE_URL=%DATABASE_URL% && set WIPE_ENGINE_DRY_RUN=%WIPE_ENGINE_DRY_RUN% && python -m uvicorn main:app --host 0.0.0.0 --port %BACKEND_PORT%"
+call :wait_for_port %BACKEND_PORT% 45
 if !errorlevel! EQU 0 (
-  echo Spring backend started on port %BACKEND_PORT%.
+  echo FastAPI backend started on port %BACKEND_PORT%.
 ) else (
-  echo WARNING: Spring backend did not open port %BACKEND_PORT% in time.
+  echo WARNING: FastAPI backend did not open port %BACKEND_PORT% in time.
 )
 exit /b 0
 
 :start_frontend
 echo.
-echo [4/4] Checking Angular frontend (port %FRONTEND_PORT%)...
+echo [3/3] Checking Angular frontend (port %FRONTEND_PORT%)...
 call :is_port_open %FRONTEND_PORT%
 if /I "!OPEN!"=="true" (
   echo Angular frontend already running on port %FRONTEND_PORT%.

@@ -21,13 +21,17 @@ export class AuthService {
           return throwError(() => new Error('Invalid username or password.'));
         }
         if (error.status === 0) {
-          return throwError(() => new Error('Backend is not reachable. Start the Spring Boot server and try again.'));
+          return throwError(() => new Error('Backend is not reachable. Start the FastAPI backend and try again.'));
         }
         const backendMessage =
           typeof error.error === 'object' && error.error && 'message' in error.error
             ? String((error.error as { message?: unknown }).message ?? '')
             : '';
-        const message = backendMessage.trim() || 'Login failed. Please try again.';
+        const detailMessage =
+          typeof error.error === 'object' && error.error && 'detail' in error.error
+            ? String((error.error as { detail?: unknown }).detail ?? '')
+            : '';
+        const message = backendMessage.trim() || detailMessage.trim() || 'Login failed. Please try again.';
         return throwError(() => new Error(message));
       })
     );
