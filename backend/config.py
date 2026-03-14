@@ -35,12 +35,36 @@ def _as_bool(value: str, *, default: bool) -> bool:
     return normalized in {"1", "true", "yes", "on"}
 
 
+def _get_writable_root(default_root: Path) -> Path:
+    """Return a directory writable at runtime.
+
+    Some deployment environments (e.g. Vercel serverless) mount the repository as read-only.
+    In those cases we fall back to the system temp directory.
+    """
+
+    # Allow overriding via env var (useful during local dev or CI)
+    env_dir = os.getenv("BACKEND_STORAGE_DIR")
+    if env_dir:
+        return Path(env_dir)
+
+    try:
+        test_file = default_root / ".writable_test"
+        test_file.write_text("ok", encoding="utf-8")
+        test_file.unlink(missing_ok=True)
+        return default_root
+    except Exception:
+        tmp_root = Path(os.getenv("TMPDIR") or os.getenv("TMP") or "/tmp") / "cipherforge"
+        tmp_root.mkdir(parents=True, exist_ok=True)
+        return tmp_root
+
+
 @lru_cache(maxsize=1)
 def get_settings() -> AppSettings:
     root_dir = Path(__file__).resolve().parents[1]
-    certificates_dir = root_dir / "certificates"
+    storage_root = _get_writable_root(root_dir)
+    certificates_dir = storage_root / "certificates"
     certificates_dir.mkdir(parents=True, exist_ok=True)
-    default_sqlite_url = f"sqlite:///{(root_dir / 'cipherforge-dev.db').as_posix()}"
+    default_sqlite_url = f"sqlite:///{(storage_root / 'cipherforge-dev.db').as_posix()}"
 
     cors_origins_raw = os.getenv("CORS_ORIGINS", "http://localhost:4200,http://localhost:4300")
     cors_origins = [origin.strip() for origin in cors_origins_raw.split(",") if origin.strip()]

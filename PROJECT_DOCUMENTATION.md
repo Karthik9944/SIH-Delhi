@@ -82,3 +82,27 @@ To use PostgreSQL, set a valid `DATABASE_URL` before launching the backend. Exam
 - For safety, device wipes default to dry-run mode unless `WIPE_ENGINE_DRY_RUN=false` is set.
 - Certificate generation uses `reportlab` when available and writes JSON/PDF evidence into `certificates/`.
 - Forensic verification attempts to use `photorec` and `testdisk` when installed.
+
+## Vercel Deployment (Serverless)
+
+This repo includes a minimal Vercel configuration that deploys:
+
+- **Backend** as a serverless Python function (via `api/main.py`).
+- **Frontend** as a static Angular build (`cipherforge-dashboard`).
+
+### Deployment sanity check
+
+After deployment, verify the backend is running by visiting:
+
+- `https://<your-app>.vercel.app/api/health`
+
+This endpoint returns a simple JSON health response and confirms the backend imports successfully.
+
+### Recommended environment variables (Vercel)
+
+Set these in the Vercel dashboard if you want production-like behavior:
+
+- `DATABASE_URL` (e.g. `postgresql+psycopg://user:pass@host:5432/db`) - otherwise it will use SQLite in `/tmp`.
+- `JWT_SECRET_KEY` (secret used to sign auth tokens)
+- `PUBLIC_BASE_URL` (optional; used for generated certificate links)
+- `STRICT_DATABASE_STARTUP` (set to `true` to fail startup if DB init fails)
