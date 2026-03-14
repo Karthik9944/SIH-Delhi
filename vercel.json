@@ -6,7 +6,7 @@
       "use": "@vercel/python"
     },
     {
-      "src": "cipherforge-dashboard/package.json",
+      "src": "cipherforge-dashboard",
       "use": "@vercel/static-build",
       "config": {
         "buildCommand": "npm install && npm run build",
