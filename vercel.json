@@ -9,8 +9,8 @@
       "src": "cipherforge-dashboard/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "buildCommand": "npm install && npm run build",
-        "distDir": "dist/cipherforge-dashboard"
+        "buildCommand": "cd cipherforge-dashboard && npm install --legacy-peer-deps && npm run build",
+        "distDir": "cipherforge-dashboard/dist/cipherforge-dashboard"
       }
     }
   ],
