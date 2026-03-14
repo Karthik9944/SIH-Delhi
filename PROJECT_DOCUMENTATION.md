@@ -106,3 +106,15 @@ Set these in the Vercel dashboard if you want production-like behavior:
 - `JWT_SECRET_KEY` (secret used to sign auth tokens)
 - `PUBLIC_BASE_URL` (optional; used for generated certificate links)
 - `STRICT_DATABASE_STARTUP` (set to `true` to fail startup if DB init fails)
+
+### Automatic deployment using GitHub Actions
+
+A GitHub Actions workflow is included in `.github/workflows/vercel-deploy.yml`.
+
+To use it, create the following secrets in your GitHub repository settings:
+
+- `VERCEL_TOKEN` (get it from Vercel under Settings → Tokens)
+- `VERCEL_ORG_ID` (your Vercel organization id)
+- `VERCEL_PROJECT_ID` (your Vercel project id)
+
+On each push to `main`, the workflow will auto-deploy your app to Vercel and print the deployment URL in the action log.
