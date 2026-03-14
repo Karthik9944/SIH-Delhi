@@ -6,11 +6,11 @@
       "use": "@vercel/python"
     },
     {
-      "src": "cipherforge-dashboard/package.json",
+      "src": "cipherforge-dashboard",
       "use": "@vercel/static-build",
       "config": {
-        "buildCommand": "cd cipherforge-dashboard && npm install --legacy-peer-deps && npm run build",
-        "distDir": "cipherforge-dashboard/dist/cipherforge-dashboard"
+        "buildCommand": "npm install --legacy-peer-deps && npm run build",
+        "distDir": "dist/cipherforge-dashboard"
       }
     }
   ],
